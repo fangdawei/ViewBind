@@ -1,0 +1,1 @@
+include ':app', ':viewbind-api', ':viewbind-annotation', ':viewbind-processor'
