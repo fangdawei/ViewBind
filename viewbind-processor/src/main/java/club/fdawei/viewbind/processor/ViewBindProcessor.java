@@ -8,21 +8,19 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
-import javax.tools.Diagnostic;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import javax.lang.model.util.Types;
+import java.util.*;
 
 @AutoService(Processor.class)
 public class ViewBindProcessor extends AbstractProcessor {
 
+    private IUtilBox mUtilBox;
     private Filer mFiler;
     private Messager mMessager;
     private Elements mElementUtils;
+    private Types mTypeUtils;
 
-    private Map<TypeElement, InjectorClassInfo> mInjectorClassInfoMap = new HashMap<>();
-
+    private Map<TypeElement, InjectorClassInfo> mInjectorClassInfoMap = new LinkedHashMap<>();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -30,12 +28,26 @@ public class ViewBindProcessor extends AbstractProcessor {
         mFiler = processingEnvironment.getFiler();
         mMessager = processingEnvironment.getMessager();
         mElementUtils = processingEnvironment.getElementUtils();
+        mTypeUtils = processingEnvironment.getTypeUtils();
+
+        mUtilBox = new IUtilBox() {
+            @Override
+            public Elements getElementUtils() {
+                return mElementUtils;
+            }
+
+            @Override
+            public Types getTypeUtils() {
+                return mTypeUtils;
+            }
+        };
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> annotations = new LinkedHashSet<>();
         annotations.add(BindView.class.getCanonicalName());
+        annotations.add(OnClick.class.getCanonicalName());
         return annotations;
     }
 
@@ -46,18 +58,14 @@ public class ViewBindProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        mMessager.printMessage(Diagnostic.Kind.NOTE, "ViewBindProcessor start");
+        collectBindView(roundEnvironment);
+        collectOnClick(roundEnvironment);
+        generateClass();
         mInjectorClassInfoMap.clear();
-        processBindView(roundEnvironment);
-        processOnClick(roundEnvironment);
-        for (InjectorClassInfo injectorClassInfo : mInjectorClassInfoMap.values()) {
-            injectorClassInfo.genJavaFile(mFiler);
-        }
-        mMessager.printMessage(Diagnostic.Kind.NOTE, "ViewBindProcessor end");
         return true;
     }
 
-    private void processBindView(RoundEnvironment roundEnvironment) {
+    private void collectBindView(RoundEnvironment roundEnvironment) {
         Set<? extends Element> elementsBindViewWith = roundEnvironment.getElementsAnnotatedWith(BindView.class);
         for (Element element : elementsBindViewWith) {
             if (element.getKind() != ElementKind.FIELD) {
@@ -72,7 +80,7 @@ public class ViewBindProcessor extends AbstractProcessor {
         }
     }
 
-    private void processOnClick(RoundEnvironment roundEnvironment) {
+    private void collectOnClick(RoundEnvironment roundEnvironment) {
         Set<? extends Element> elementsOnClickWith = roundEnvironment.getElementsAnnotatedWith(OnClick.class);
         for(Element element : elementsOnClickWith) {
             if (element.getKind() != ElementKind.METHOD) {
@@ -82,7 +90,7 @@ public class ViewBindProcessor extends AbstractProcessor {
             TypeElement typeElement = (TypeElement) executableElement.getEnclosingElement();
             InjectorClassInfo injectorClassInfo = getInjectorClassInfo(typeElement);
             OnClick onClick = executableElement.getAnnotation(OnClick.class);
-            int viewId = onClick.id();
+            int[] viewId = onClick.id();
             injectorClassInfo.addOnClickInjectInfo(executableElement, viewId);
         }
     }
@@ -90,10 +98,16 @@ public class ViewBindProcessor extends AbstractProcessor {
     private InjectorClassInfo getInjectorClassInfo(TypeElement typeElement) {
         InjectorClassInfo injectorClassInfo = mInjectorClassInfoMap.get(typeElement);
         if (injectorClassInfo == null) {
-            String packageName = mElementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-            injectorClassInfo = new InjectorClassInfo(packageName, typeElement);
+            injectorClassInfo = new InjectorClassInfo(typeElement);
+            injectorClassInfo.setUtilBox(mUtilBox);
             mInjectorClassInfoMap.put(typeElement, injectorClassInfo);
         }
         return injectorClassInfo;
+    }
+
+    private void generateClass() {
+        for (InjectorClassInfo injectorClassInfo : mInjectorClassInfoMap.values()) {
+            injectorClassInfo.genJavaFile(mFiler);
+        }
     }
 }

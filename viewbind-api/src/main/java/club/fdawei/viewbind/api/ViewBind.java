@@ -1,7 +1,5 @@
 package club.fdawei.viewbind.api;
 
-import android.app.Activity;
-import android.view.View;
 import club.fdawei.viewbind.api.provider.Provider;
 
 import java.util.HashMap;
@@ -12,19 +10,35 @@ import java.util.Map;
  */
 public class ViewBind {
 
-    private static final String IMPL_SUFFIX = "_ViewInjector";
+    private static final String INJECTOR_NAME_SUFFIX = "_ViewInjector";
 
+    private static final ProviderStore providerStore = new ProviderStore();
     private static final Map<String, ViewInjector> viewInjectorMap = new HashMap<>();
 
-    public static void bind(View view) {
-        bind(view, view, ProviderStore.VIEW_PROVIDER);
+    public static void registerProvider(Class<?> clz, Provider provider) {
+        providerStore.registerProvider(clz, provider);
     }
 
-    public static void bind(Activity activity) {
-        bind(activity, activity, ProviderStore.ACTIVIRT_PROVIDER);
+    public static void unregisterProvider(Class<?> clz) {
+        providerStore.unregisterProvider(clz);
     }
 
-    private static void bind(Object target, Object source, Provider provider) {
+    public static void bind(Object obj) {
+        bind(obj, obj);
+    }
+
+    public static void bind(Object target, Object source) {
+        if (target == null || source == null) {
+            return;
+        }
+        Provider provider = providerStore.getProvider(source);
+        if (provider == null) {
+            return;
+        }
+        bindReal(target, source, provider);
+    }
+
+    private static void bindReal(Object target, Object source, Provider provider) {
         ViewInjector viewInjector = getViewInjector(target);
         if (viewInjector != null) {
             viewInjector.inject(target, source, provider);
@@ -32,18 +46,20 @@ public class ViewBind {
     }
 
     private static ViewInjector getViewInjector(Object target) {
-        final String clzName = target.getClass().getName() + IMPL_SUFFIX;
+        final String clzName = target.getClass().getName() + INJECTOR_NAME_SUFFIX;
         ViewInjector viewInjector = viewInjectorMap.get(clzName);
         if (viewInjector == null) {
-            try {
-                Class clazz = Class.forName(clzName);
-                viewInjector = (ViewInjector) clazz.newInstance();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
+            synchronized (viewInjectorMap) {
+                viewInjector = viewInjectorMap.get(clzName);
+                if (viewInjector == null) {
+                    try {
+                        Class clazz = Class.forName(clzName);
+                        viewInjector = (ViewInjector) clazz.newInstance();
+                        viewInjectorMap.put(clzName, viewInjector);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
         return viewInjector;

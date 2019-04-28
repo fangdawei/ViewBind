@@ -9,7 +9,7 @@ import javax.lang.model.element.Name;
 public class OnClickInjectInfo {
 
     private ExecutableElement executableElement;
-    private int viewId;
+    private int[] viewId;
 
     public ExecutableElement getExecutableElement() {
         return executableElement;
@@ -19,11 +19,11 @@ public class OnClickInjectInfo {
         this.executableElement = executableElement;
     }
 
-    public int getViewId() {
+    public int[] getViewId() {
         return viewId;
     }
 
-    public void setViewId(int viewId) {
+    public void setViewId(int[] viewId) {
         this.viewId = viewId;
     }
 
