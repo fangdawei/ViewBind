@@ -13,5 +13,5 @@ import java.util.Arrays;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface OnClick {
-    int[] id();
+    int value();
 }

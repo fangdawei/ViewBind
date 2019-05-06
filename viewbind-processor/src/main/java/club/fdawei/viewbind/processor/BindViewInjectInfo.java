@@ -1,8 +1,8 @@
 package club.fdawei.viewbind.processor;
 
-import javax.lang.model.element.Name;
+import com.squareup.javapoet.CodeBlock;
+
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
 
 /**
  * Created by david on 2019/3/4.
@@ -10,29 +10,15 @@ import javax.lang.model.type.TypeMirror;
 public class BindViewInjectInfo {
 
     private VariableElement variableElement;
-    private int viewId;
+    private ViewId viewId;
 
-    public VariableElement getVariableElement() {
-        return variableElement;
-    }
-
-    public void setVariableElement(VariableElement variableElement) {
+    public BindViewInjectInfo(VariableElement variableElement, ViewId viewId) {
         this.variableElement = variableElement;
-    }
-
-    public int getViewId() {
-        return viewId;
-    }
-
-    public void setViewId(int viewId) {
         this.viewId = viewId;
     }
 
-    public TypeMirror getTargetFieldType() {
-        return variableElement.asType();
-    }
-
-    public Name getTargetFieldName() {
-        return variableElement.getSimpleName();
+    public CodeBlock buildCode(String target, String source) {
+        return CodeBlock.of("$L.$N = ($T) provider.findView($L, $L)",
+                target, variableElement.getSimpleName(), variableElement.asType(), source, viewId.getCodeBlock());
     }
 }

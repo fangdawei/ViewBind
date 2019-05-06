@@ -1,0 +1,27 @@
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+
+dependencies {
+    compileOnly gradleApi()
+    implementation 'com.android.tools.build:gradle:3.3.1'
+    implementation 'com.squareup:javapoet:1.11.1'
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+group = "$viewbind_lib_group"
+version = "$viewbind_lib_version"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("${rootProject.localRepoPath}"))
+            pom.groupId = "$viewbind_lib_group"
+            pom.artifactId = "viewbind-plugin"
+            pom.version = "$viewbind_lib_version"
+        }
+    }
+}
+

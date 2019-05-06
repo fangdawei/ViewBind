@@ -3,6 +3,7 @@
 buildscript {
     ext.kotlin_version = '1.3.20'
     repositories {
+        maven { url uri(rootProject.localRepoPath) }
         google()
         jcenter()
         
@@ -12,11 +13,17 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+
+        def localRepoDir = new File(rootProject.localRepoPath)
+        if (localRepoDir.exists()) {
+            classpath "club.fdawei.viewbind:viewbind-plugin:$viewbind_lib_version"
+        }
     }
 }
 
 allprojects {
     repositories {
+        maven { url uri(rootProject.localRepoPath) }
         google()
         jcenter()
         
