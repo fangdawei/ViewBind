@@ -1,1 +1,9 @@
-include ':app', ':viewbind-api', ':viewbind-annotation', ':viewbind-processor'
+include ':app', ':sub', ':viewbind-api', ':viewbind-annotation', ':viewbind-processor', ':viewbind-plugin'
+
+project(':app').projectDir = new File('sample/app')
+project(':sub').projectDir = new File('sample/sub')
+
+gradle.beforeProject {
+    def localRepoDir = new File(rootDir, 'local-repo')
+    gradle.rootProject.ext.localRepoPath = localRepoDir.absolutePath
+}

@@ -5,8 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Created by david on 2019/3/5.
+ */
+
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.FIELD)
-public @interface BindView {
+@Target(ElementType.METHOD)
+public @interface OnLongClick {
     int value();
 }
