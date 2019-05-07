@@ -1,9 +1,9 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 28
-
-
 
     defaultConfig {
         minSdkVersion 15
@@ -33,4 +33,27 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation project(':viewbind-annotation')
+}
+
+group = "$viewbind_lib_group"
+version = "$viewbind_lib_version"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("${rootProject.localRepoPath}"))
+            pom.groupId = "$viewbind_lib_group"
+            pom.artifactId = "viewbind-api"
+            pom.version = "$viewbind_lib_version"
+        }
+    }
+}
+
+publish {
+    repoName = 'maven'
+    userOrg = 'fangdawei'
+    groupId = "$viewbind_lib_group"
+    artifactId = 'viewbind-api'
+    publishVersion = "$viewbind_lib_version"
+    desc = 'ViewBind'
 }
