@@ -57,6 +57,7 @@ class ViewBindPlugin : Plugin<Project> {
                         it.rFile = rConfigurableFiles.singleFile
                         it.packageName = rPackageName
                         it.outputDir = outputDir
+                        it.dependsOn(processResourcesTask)
                         variant.registerJavaGeneratingTask(it, outputDir)
                     }
                 }

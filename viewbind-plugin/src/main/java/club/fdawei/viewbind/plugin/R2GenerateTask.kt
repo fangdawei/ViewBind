@@ -25,6 +25,9 @@ open class R2GenerateTask : DefaultTask() {
 
     @TaskAction
     fun doAction() {
+        if (rFile == null || !rFile!!.exists()) {
+            return
+        }
         val r2Builder = R2Builder()
         rFile?.forEachLine {
             processLine(it, r2Builder)
